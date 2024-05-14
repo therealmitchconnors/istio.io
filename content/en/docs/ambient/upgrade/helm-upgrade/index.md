@@ -11,15 +11,9 @@ status: Experimental
 ---
 
 Follow this guide to upgrade and configure an ambient mode installation using
-[Helm](https://helm.sh/docs/). This guide assumes you have already performed an [ambient mode installation with Helm](/docs/ambient/install/helm-installation/) with a previous minor or patch version of Istio.
+[Helm](https://helm.sh/docs/). This guide assumes you have already performed an [ambient mode installation with Helm](/docs/ambient/install/helm-installation/) with a previous version of Istio.
 
 {{< boilerplate ambient-alpha-warning >}}
-
-{{< warning >}}
-In contrast to sidecar mode, ambient mode supports moving application pods to an upgraded data plane without a mandatory restart or reschedule of running application pods. However, upgrading the data plane **will** briefly disrupt all workload traffic on the upgraded node, and ambient mode does not currently support canary upgrades of the data plane.
-
-Node cordoning and blue/green node pools are recommended to control blast radius of application pod traffic disruption during production upgrades. See your Kubernetes provider documentation for details.
-{{< /warning >}}
 
 ## Prerequisites
 
@@ -28,6 +22,18 @@ Node cordoning and blue/green node pools are recommended to control blast radius
     {{< text syntax=bash snip_id=update_helm >}}
     $ helm repo update istio
     {{< /text >}}
+
+## Understanding Ambient Upgrades
+
+All Istio Upgrades involve upgrading the control plane, data plane, and Istio CRDs.  Because the Ambient Data Plane is separated into [two components](TODO), the ztunnel and waypoints, Ambient Upgrades involve separate steps for these components.  Upgrading the control plane and CRDs will be covered here in brief, but is essentially identical to the process for these components in sidecar mode, which is covered extensively [here](TODO).  
+
+Like sidecar mode, ambient mode upgrades make use of Tags and Revisions to allow fine-grained control over gateway upgrades, including waypoints, with simple controls for rolling back at any point.  However, unlike sidecar mode, the Ambient ztunnel runs as a daemonset, or per-node proxy, meaning that ztunnel upgrades affect, at minimum, one entire node at a time.  For this reason, we recommend using Node cordoning and draining before upgrading the ztunnel component for a given node.  For the sake of simplicity, this document will demonstrate in-place upgrades of the ztunnel, which are less safe, and may involve some downtime.
+
+{{< warning >}}
+Ztunnel upgrades may cause downtime, and are recommended only for cordoned and drained nodes.
+{{< /warning >}}
+
+The 
 
 ## In-place upgrade
 
